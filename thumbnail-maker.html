@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Thumbnail Prompt Maker v1.0
+  </title>
+  <link href="icon.svg" rel="icon" type="image/svg+xml"/>
+  <link href="thumbnail-styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header class="app-nav">
+   <a class="app-home-chip" href="index.html">
+    AI CONVENIENCE TOOLS
+   </a>
+   <nav aria-label="사이트 메뉴" class="app-nav-links">
+    <a class="app-nav-btn" href="suno-maker.html">
+     수노 커멘드 메이커
+    </a>
+    <a class="app-nav-btn" href="audio-master.html">
+     오디오 배치 마스터
+    </a>
+    <a aria-current="page" aria-disabled="true" class="app-nav-btn is-active" href="thumbnail-maker.html" tabindex="-1">
+     썸네일 프롬프트 메이커
+    </a>
+   </nav>
+  </header>
+  <main class="app-shell">
+   <section class="workspace">
+    <aside aria-label="프롬프트 설정" class="settings-panel">
+     <div class="brand-row">
+      <div aria-hidden="true" class="app-mark">
+       T
+      </div>
+      <div>
+       <h1>
+        Thumbnail Prompt Maker
+       </h1>
+       <p>
+        플레이리스트 썸네일 이미지 프롬프트 생성기
+       </p>
+       <p class="app-meta">
+        v1.0 · 제작자
+        <a href="https://www.youtube.com/@AIConvenience" rel="noopener" target="_blank">
+         AI 편의점
+        </a>
+        ·
+        <a href="https://ctee.kr/place/aiconvenience/donation" rel="noopener" target="_blank">
+         커피값 응원하기
+        </a>
+       </p>
+      </div>
+     </div>
+     <form class="control-grid" id="promptForm">
+      <div aria-label="설정 저장" class="settings-actions">
+       <button id="saveSettings" type="button">
+        설정 저장
+       </button>
+       <button id="loadSettings" type="button">
+        불러오기
+       </button>
+       <button id="resetSettings" type="button">
+        초기화
+       </button>
+       <span aria-live="polite" id="settingsStatus">
+       </span>
+      </div>
+      <label class="textarea-field">
+       <span>
+        가사 입력
+       </span>
+       <button aria-label="가사 삭제" class="clear-input" data-clear="lyricsInput" title="가사 삭제" type="button">
+        <svg aria-hidden="true" viewbox="0 0 24 24">
+         <path d="M10 5h4">
+         </path>
+         <path d="M6 8h12">
+         </path>
+         <path d="M8 8l1 11h6l1-11">
+         </path>
+         <path d="M10 11v5">
+         </path>
+         <path d="M14 11v5">
+         </path>
+        </svg>
+       </button>
+       <textarea id="lyricsInput" placeholder="가사를 붙여 넣으세요." rows="8"></textarea>
+      </label>
+      <label class="textarea-field">
+       <span>
+        Style Prompt 입력
+       </span>
+       <button aria-label="Style Prompt 삭제" class="clear-input" data-clear="styleInput" title="Style Prompt 삭제" type="button">
+        <svg aria-hidden="true" viewbox="0 0 24 24">
+         <path d="M10 5h4">
+         </path>
+         <path d="M6 8h12">
+         </path>
+         <path d="M8 8l1 11h6l1-11">
+         </path>
+         <path d="M10 11v5">
+         </path>
+         <path d="M14 11v5">
+         </path>
+        </svg>
+       </button>
+       <textarea id="styleInput" placeholder="Suno Style Prompt 또는 음악 스타일 설명을 붙여 넣으세요." rows="5"></textarea>
+      </label>
+      <button class="auto-button" id="autoRecommend" type="button">
+       가사·스타일 기반 자동 설정
+      </button>
+      <div class="two-col">
+       <label>
+        프롬프트 길이
+        <select id="promptLength">
+         <option>
+          짧게
+         </option>
+         <option selected="selected">
+          보통
+         </option>
+         <option>
+          자세히
+         </option>
+        </select>
+       </label>
+       <label>
+        용도
+        <select id="purpose">
+         <option selected="selected">
+          유튜브 플레이리스트 썸네일
+         </option>
+         <option>
+          앨범 커버
+         </option>
+         <option>
+          쇼츠 배경
+         </option>
+        </select>
+       </label>
+      </div>
+      <div class="two-col">
+       <label>
+        이미지 비율
+        <select id="ratio">
+         <option selected="selected">
+          16:9
+         </option>
+         <option>
+          1:1
+         </option>
+         <option>
+          9:16
+         </option>
+        </select>
+       </label>
+       <label>
+        사용할 이미지 AI 도구
+        <select id="aiTool">
+         <option selected="selected">
+          범용 이미지 AI
+         </option>
+         <option>
+          Flow
+         </option>
+         <option>
+          ChatGPT 이미지 생성
+         </option>
+         <option>
+          DALL·E
+         </option>
+         <option>
+          Midjourney
+         </option>
+         <option>
+          Ideogram
+         </option>
+         <option>
+          Leonardo AI
+         </option>
+         <option>
+          Canva AI
+         </option>
+         <option>
+          Stable Diffusion
+         </option>
+         <option>
+          Seedream
+         </option>
+        </select>
+       </label>
+      </div>
+      <section class="blend-panel">
+       <label>
+        레퍼런스 이미지
+        <select id="referenceMode">
+         <option selected="selected">
+          첨부 안 함
+         </option>
+         <option>
+          레퍼런스 인물 참고
+         </option>
+         <option>
+          레퍼런스 분위기 참고
+         </option>
+         <option>
+          레퍼런스 색감 참고
+         </option>
+         <option>
+          레퍼런스 구도 참고
+         </option>
+         <option>
+          레퍼런스 배경 참고
+         </option>
+         <option>
+          레퍼런스 오브젝트 참고
+         </option>
+         <option>
+          레퍼런스 텍스트 배치 참고
+         </option>
+         <option>
+          레퍼런스 전체 스타일 참고
+         </option>
+         <option>
+          레퍼런스 썸네일 구조 참고
+         </option>
+         <option>
+          레퍼런스 조명 참고
+         </option>
+         <option>
+          레퍼런스 카메라 앵글 참고
+         </option>
+         <option>
+          레퍼런스 의상/소품 참고
+         </option>
+         <option>
+          레퍼런스 캐릭터 실루엣 참고
+         </option>
+         <option>
+          레퍼런스 표정/감정 참고
+         </option>
+         <option>
+          레퍼런스 이미지와 최대한 비슷하게
+         </option>
+         <option>
+          레퍼런스는 약하게만 참고
+         </option>
+        </select>
+        <span class="field-help" id="referenceHelp">
+         레퍼런스 이미지를 사용하지 않음.
+        </span>
+       </label>
+      </section>
+      <section class="picker-panel">
+       <label>
+        썸네일 구성
+        <input id="compositionCustom" placeholder="공백 시 랜덤 구성"/>
+       </label>
+       <input id="composition" type="hidden" value="랜덤"/>
+       <button class="picker-button" data-picker="composition" type="button">
+        <span>
+         랜덤
+        </span>
+       </button>
+       <input id="personGender" type="hidden" value="랜덤"/>
+       <input id="personAge" type="hidden" value="랜덤"/>
+       <input id="personFeature" type="hidden" value="랜덤"/>
+       <input id="personEthnicity" type="hidden" value="랜덤"/>
+      </section>
+      <section class="picker-panel">
+       <label>
+        썸네일 텍스트
+        <input id="thumbnailText" placeholder="공백 시 텍스트 없는 썸네일"/>
+       </label>
+       <div class="two-col">
+        <div>
+         <input id="textStyle" type="hidden" value="랜덤"/>
+         <input id="textClarity" type="hidden" value="랜덤"/>
+         <button class="picker-button" data-picker="textStyle" type="button">
+          <span>
+           텍스트 스타일: 랜덤
+          </span>
+         </button>
+        </div>
+        <div>
+         <input id="textLayout" type="hidden" value="랜덤"/>
+         <button class="picker-button" data-picker="textLayout" type="button">
+          <span>
+           표시 방식: 랜덤
+          </span>
+         </button>
+        </div>
+       </div>
+      </section>
+      <section class="picker-panel">
+       <div class="two-col">
+        <label>
+         텍스트 없음 처리
+         <select id="emptyTextMode">
+          <option selected="selected">
+           텍스트 없는 썸네일
+          </option>
+          <option>
+           텍스트 공간만 비워두기
+          </option>
+         </select>
+        </label>
+        <label>
+         비울 공간 위치
+         <select id="emptyTextPosition">
+          <option selected="selected">
+           AI가 알맞게 판단
+          </option>
+          <option>
+           왼쪽 공간 비우기
+          </option>
+          <option>
+           오른쪽 공간 비우기
+          </option>
+          <option>
+           상단 공간 비우기
+          </option>
+          <option>
+           하단 공간 비우기
+          </option>
+          <option>
+           중앙 공간 비우기
+          </option>
+          <option>
+           좌우 공간 비우기
+          </option>
+          <option>
+           상하 공간 비우기
+          </option>
+          <option>
+           오브젝트 옆 공간 비우기
+          </option>
+          <option>
+           배경의 넓은 여백 비우기
+          </option>
+         </select>
+        </label>
+       </div>
+       <span class="field-help">
+        썸네일 텍스트가 비어 있을 때만 사용할 수 있습니다.
+       </span>
+      </section>
+      <section class="picker-panel">
+       <input id="imageStyleA" type="hidden" value="랜덤"/>
+       <input id="imageStyleB" type="hidden" value="없음"/>
+       <button class="picker-button" data-picker="imageStyle" type="button">
+        <span>
+         이미지 스타일: 랜덤
+        </span>
+       </button>
+      </section>
+      <section class="picker-panel">
+       <div class="two-col">
+        <div>
+         <input id="mood" type="hidden" value="랜덤"/>
+         <button class="picker-button" data-picker="mood" type="button">
+          <span>
+           분위기: 랜덤
+          </span>
+         </button>
+        </div>
+        <div>
+         <input id="camera" type="hidden" value="랜덤"/>
+         <button class="picker-button" data-picker="camera" type="button">
+          <span>
+           카메라 효과: 랜덤
+          </span>
+         </button>
+        </div>
+       </div>
+      </section>
+      <section class="picker-panel">
+       <input id="season" type="hidden" value="랜덤"/>
+       <button class="picker-button" data-picker="season" type="button">
+        <span>
+         계절감: 랜덤
+        </span>
+       </button>
+      </section>
+      <section class="picker-panel">
+       <div class="two-col">
+        <div>
+         <input id="mainColor" type="hidden" value="랜덤"/>
+         <button class="picker-button" data-picker="mainColor" type="button">
+          <span>
+           메인 색감: 랜덤
+          </span>
+         </button>
+        </div>
+        <div>
+         <input id="subColor" type="hidden" value="없음"/>
+         <button class="picker-button" data-picker="subColor" type="button">
+          <span>
+           보조 색감: 없음
+          </span>
+         </button>
+        </div>
+       </div>
+      </section>
+     </form>
+    </aside>
+    <section class="output-panel">
+     <div class="output-toolbar">
+      <div>
+       <h2>
+        프롬프트 결과
+       </h2>
+       <p id="summary">
+        입력값을 바탕으로 썸네일 프롬프트를 생성합니다.
+       </p>
+      </div>
+     </div>
+     <div class="results">
+      <article class="result-card">
+       <span class="track-label">
+        ANALYSIS
+       </span>
+       <div class="result-card-head">
+        <h3>
+         분석 결과 요약
+        </h3>
+       </div>
+       <pre id="analysisOutput"></pre>
+      </article>
+      <article class="result-card">
+       <span class="track-label">
+        ENGLISH PROMPT
+       </span>
+       <div class="result-card-head">
+        <h3>
+         영어 프롬프트
+        </h3>
+        <button class="card-copy" data-copy-target="englishOutput" type="button">
+         복사
+        </button>
+       </div>
+       <pre id="englishOutput"></pre>
+      </article>
+      <article class="result-card">
+       <span class="track-label">
+        NEGATIVE PROMPT
+       </span>
+       <div class="result-card-head">
+        <h3>
+         네거티브 프롬프트
+        </h3>
+        <button class="card-copy" data-copy-target="negativeOutput" type="button">
+         복사
+        </button>
+       </div>
+       <pre id="negativeOutput"></pre>
+      </article>
+      <article class="result-card">
+       <span class="track-label">
+        KOREAN
+       </span>
+       <div class="result-card-head">
+        <h3>
+         한글 프롬프트
+        </h3>
+        <button class="card-copy" data-copy-target="koreanOutput" type="button">
+         복사
+        </button>
+       </div>
+       <pre id="koreanOutput"></pre>
+      </article>
+      <article class="result-card">
+       <span class="track-label">
+        KOREAN NEGATIVE
+       </span>
+       <div class="result-card-head">
+        <h3>
+         한글 네거티브 프롬프트
+        </h3>
+        <button class="card-copy" data-copy-target="koreanNegativeOutput" type="button">
+         복사
+        </button>
+       </div>
+       <pre id="koreanNegativeOutput"></pre>
+      </article>
+      <article class="result-card">
+       <span class="track-label">
+        CHATBOT COMMAND
+       </span>
+       <div class="result-card-head">
+        <div class="result-title-group">
+         <h3>
+          챗봇용 명령어
+         </h3>
+         <span>
+          바로 쓰는 프롬프트가 아니라, 챗봇에 붙여 넣어 랜덤 설정까지 재해석해 고급 프롬프트를 다시 뽑는 용도입니다.
+         </span>
+        </div>
+        <button class="card-copy" data-copy-target="chatbotOutput" type="button">
+         복사
+        </button>
+       </div>
+       <pre id="chatbotOutput"></pre>
+      </article>
+     </div>
+    </section>
+   </section>
+  </main>
+  <div class="picker-modal" hidden="" id="pickerModal">
+   <div aria-labelledby="pickerModalTitle" aria-modal="true" class="picker-modal-panel" role="dialog">
+    <div class="picker-modal-head">
+     <div>
+      <p>
+       Template Library
+      </p>
+      <h2 id="pickerModalTitle">
+       템플릿 선택
+      </h2>
+     </div>
+     <button aria-label="닫기" id="pickerModalClose" type="button">
+      닫기
+     </button>
+    </div>
+    <div class="picker-modal-search">
+     <input id="pickerSearch" placeholder="검색" type="search"/>
+    </div>
+    <div class="picker-group-list" id="pickerGroupList">
+    </div>
+   </div>
+  </div>
+  <script src="thumbnail.js">
+  </script>
+ </body>
+</html>

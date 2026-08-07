@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   AI 오디오 마스터 KR v1.1
+  </title>
+  <meta content="브라우저에서 오디오 파일을 업로드하고 프리셋 기반으로 WAV 마스터링 파일을 만드는 한국어 정적 앱입니다." name="description"/>
+  <link href="favicon.svg" rel="icon" type="image/svg+xml"/>
+  <link href="audio-styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header class="app-nav">
+   <a class="app-home-chip" href="index.html">
+    AI CONVENIENCE TOOLS
+   </a>
+   <nav aria-label="사이트 메뉴" class="app-nav-links">
+    <a class="app-nav-btn" href="suno-maker.html">
+     수노 커멘드 메이커
+    </a>
+    <a aria-current="page" aria-disabled="true" class="app-nav-btn is-active" href="audio-master.html" tabindex="-1">
+     오디오 배치 마스터
+    </a>
+    <a class="app-nav-btn" href="thumbnail-maker.html">
+     썸네일 프롬프트 메이커
+    </a>
+   </nav>
+  </header>
+  <main class="shell">
+   <section class="hero">
+    <div>
+     <p class="eyebrow">
+      브라우저 기반 로컬 오디오 마스터링
+     </p>
+     <h1>
+      오디오 배치 마스터
+     </h1>
+     <p class="lede">
+      오디오 파일을 추가하고 목적에 맞는 프리셋을 선택하면, 브라우저 안에서 마스터링된 WAV 파일을 만들 수 있습니다. 파일은 서버로 업로드되지 않습니다.
+     </p>
+     <p class="version-line">
+      KR v1.1 · 제작:
+      <a href="https://www.youtube.com/@AIConvenience/videos" rel="noopener" target="_blank">
+       AI 편의점
+      </a>
+      <a class="support-link" href="https://ctee.kr/place/aiconvenience/donation" rel="noopener" target="_blank">
+       커피값 후원하기
+      </a>
+     </p>
+    </div>
+    <div class="meters">
+     <div>
+      <span>
+       최대 곡 수
+      </span>
+      <strong>
+       30
+      </strong>
+     </div>
+     <div>
+      <span>
+       True Peak
+      </span>
+      <strong>
+       -1 dB
+      </strong>
+     </div>
+     <div>
+      <span>
+       Export
+      </span>
+      <strong>
+       WAV
+      </strong>
+     </div>
+    </div>
+   </section>
+   <section class="workspace">
+    <aside class="panel controls" id="controlsPanel">
+     <div class="dropzone" id="dropzone">
+      <input accept="audio/*" id="fileInput" multiple="multiple" type="file"/>
+      <div class="upload-copy">
+       <span class="upload-icon">
+        +
+       </span>
+       <strong>
+        오디오 파일 추가
+       </strong>
+       <small>
+        WAV, MP3, FLAC, M4A 등 최대 30곡
+       </small>
+      </div>
+     </div>
+     <section class="preset-summary">
+      <div>
+       <span class="section-label">
+        프리셋
+       </span>
+       <h2 id="currentPresetName">
+        기본
+       </h2>
+       <p id="currentPresetDescription">
+        무난한 유튜브 업로드용 보정입니다.
+       </p>
+      </div>
+      <button class="preset-select-button" id="openPresetModal" type="button">
+       프리셋 선택
+      </button>
+     </section>
+     <section class="control-group">
+      <div class="field">
+       <div class="range-label">
+        <span>
+         선명도
+        </span>
+        <output id="clarityValue">
+         50%
+        </output>
+       </div>
+       <input id="clarity" max="100" min="0" type="range" value="50"/>
+      </div>
+      <div class="field">
+       <div class="range-label">
+        <span>
+         저역 무게감
+        </span>
+        <output id="warmthValue">
+         50%
+        </output>
+       </div>
+       <input id="warmth" max="100" min="0" type="range" value="50"/>
+      </div>
+      <div class="field">
+       <div class="range-label">
+        <span>
+         스테레오 폭
+        </span>
+        <output id="widthValue">
+         30%
+        </output>
+       </div>
+       <input id="width" max="100" min="0" type="range" value="30"/>
+      </div>
+      <label class="field">
+       <span>
+        압축 강도
+       </span>
+       <select id="compression">
+        <option value="light">
+         약함
+        </option>
+        <option selected="selected" value="medium">
+         보통
+        </option>
+        <option value="strong">
+         강함
+        </option>
+       </select>
+      </label>
+     </section>
+     <section class="control-group">
+      <label class="toggle">
+       <input checked="checked" id="trimSilence" type="checkbox"/>
+       <span>
+        앞뒤 무음 자동 정리
+       </span>
+      </label>
+      <label class="toggle">
+       <input id="albumMatch" type="checkbox"/>
+       <span>
+        앨범 단위 볼륨/톤 맞춤
+       </span>
+      </label>
+      <label class="toggle">
+       <input checked="checked" id="truePeakGuard" type="checkbox"/>
+       <span>
+        True Peak 가드 적용
+       </span>
+      </label>
+      <label class="toggle">
+       <input checked="checked" id="appendPresetName" type="checkbox"/>
+       <span>
+        파일명에 프리셋명 추가
+       </span>
+      </label>
+     </section>
+     <div class="button-stack">
+      <button class="primary" disabled="disabled" id="masterBtn">
+       전체 마스터링 시작
+      </button>
+      <button class="secondary danger" disabled="disabled" id="stopBtn">
+       작업 중지
+      </button>
+      <button class="secondary" disabled="disabled" id="downloadEachBtn">
+       완성본 WAV 전체 다운로드
+      </button>
+      <button class="secondary" disabled="disabled" id="clearBtn">
+       목록 비우기
+      </button>
+     </div>
+    </aside>
+    <section class="panel queue">
+     <div class="queue-head">
+      <div>
+       <p class="eyebrow">
+        Batch queue
+       </p>
+       <h2>
+        작업 목록
+       </h2>
+      </div>
+      <p id="summary">
+       0 / 30
+      </p>
+     </div>
+     <div class="notice" id="workNotice">
+      같은 파일을 같은 설정으로 다시 처리하면 결과는 거의 동일합니다. 결과가 마음에 들지 않으면 프리셋이나 톤 값을 바꿔 다시 처리해 보세요.
+     </div>
+     <div class="status-grid">
+      <span id="currentStatus">
+       대기 중
+      </span>
+      <span id="currentFile">
+       파일 없음
+      </span>
+      <span id="currentPreset">
+       프리셋: 기본
+      </span>
+     </div>
+     <div class="progress-wrap">
+      <div id="progressBar">
+      </div>
+     </div>
+     <ol class="track-list" id="trackList">
+     </ol>
+     <div class="empty" id="emptyState">
+      <strong>
+       아직 추가한 곡이 없습니다.
+      </strong>
+      <span>
+       왼쪽 영역으로 파일을 끌어오거나 버튼을 눌러 선택하세요.
+      </span>
+     </div>
+    </section>
+   </section>
+  </main>
+  <dialog class="preset-modal" id="presetModal">
+   <form method="dialog">
+    <div class="modal-head">
+     <div>
+      <p class="eyebrow">
+       Preset
+      </p>
+      <h2>
+       프리셋 선택
+      </h2>
+     </div>
+     <button aria-label="닫기" class="icon-button" type="submit" value="cancel">
+      ×
+     </button>
+    </div>
+    <div class="preset-grid" id="presetGrid">
+    </div>
+   </form>
+  </dialog>
+  <template id="trackTemplate">
+   <li class="track">
+    <button aria-label="곡 삭제" class="delete-track" title="곡 삭제" type="button">
+     ×
+    </button>
+    <div class="track-top">
+     <div class="track-main">
+      <div class="track-title-row">
+       <strong class="track-name">
+       </strong>
+       <span class="badge">
+        대기
+       </span>
+      </div>
+      <div class="track-meta">
+      </div>
+     </div>
+     <div class="track-actions">
+      <button class="stop-track" disabled="disabled" type="button">
+       정지
+      </button>
+      <button class="single-master" type="button">
+       이 곡 마스터링
+      </button>
+      <a class="download" hidden="">
+       다운로드
+      </a>
+     </div>
+    </div>
+    <div class="track-stats">
+    </div>
+    <div class="waveform-panel" hidden="">
+     <button class="waveform-row original-waveform" data-mode="original" type="button">
+      <span>
+       원본
+      </span>
+      <canvas aria-hidden="true" height="54" width="720">
+      </canvas>
+     </button>
+     <button class="waveform-row mastered-waveform" data-mode="mastered" type="button">
+      <span>
+       마스터본
+      </span>
+      <canvas aria-hidden="true" height="54" width="720">
+      </canvas>
+     </button>
+    </div>
+    <div class="transport" hidden="">
+     <button class="jump-back" type="button">
+      -10s
+     </button>
+     <button class="play-pause" type="button">
+      재생
+     </button>
+     <button class="stop-audio" type="button">
+      정지
+     </button>
+     <button class="jump-forward" type="button">
+      +10s
+     </button>
+     <span class="time-readout">
+      0:00 / 0:00
+     </span>
+    </div>
+   </li>
+  </template>
+  <script src="audio.js">
+  </script>
+ </body>
+</html>

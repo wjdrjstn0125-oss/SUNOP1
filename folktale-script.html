@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>Folktale Script Maker 1.0</title>
+  <link href="suno-styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header class="app-nav">
+   <a class="app-home-chip" href="index.html">
+    AI CONVENIENCE TOOLS
+   </a>
+   <nav aria-label="사이트 메뉴" class="app-nav-links">
+    <a class="app-nav-btn" href="suno-maker.html">수노 커멘드 메이커</a>
+    <a class="app-nav-btn" href="audio-master.html">오디오 배치 마스터</a>
+    <a class="app-nav-btn" href="thumbnail-maker.html">썸네일 프롬프트 메이커</a>
+    <a aria-current="page" aria-disabled="true" class="app-nav-btn is-active" href="folktale-script.html" tabindex="-1">민담 대본 메이커</a>
+    <a class="app-nav-btn" href="folktale-asset.html">민담 에셋 메이커</a>
+   </nav>
+  </header>
+  <main class="app-shell">
+   <section class="workspace">
+    <aside aria-label="명령어 설정" class="settings-panel">
+     <div class="brand-row">
+      <div aria-hidden="true" class="app-mark" style="background:#8a2be2">
+       📝
+      </div>
+      <div>
+       <h1>
+        Folktale Script Maker
+       </h1>
+       <p>
+        유튜브 야담 클로드 프롬프트 생성기
+       </p>
+      </div>
+     </div>
+     <form class="control-grid" id="promptForm">
+      <div class="two-col">
+       <label>
+        장르 선택
+        <select id="genre">
+         <option value="권선징악">권선징악 (착한 자는 복을, 악한 자는 벌을 받음)</option>
+         <option value="귀신·도깨비">귀신·도깨비 (기묘하고 초자연적인 전설)</option>
+         <option value="해학·풍자">해학·풍자 (웃기면서도 뼈가 있는 이야기)</option>
+         <option value="사랑·비극">사랑·비극 (신분을 뛰어넘는 애절한 로맨스)</option>
+         <option value="역사 인물">역사 인물 (실존 인물의 어린 시절이나 야사)</option>
+         <option value="미스터리·추리">미스터리·추리 (숨겨진 진실을 파헤치는 사또나 암행어사)</option>
+         <option value="가족·성장">가족·성장 (오해를 풀고 화해하는 감동 스토리)</option>
+        </select>
+       </label>
+       <label>
+        대본 목표 길이
+        <select id="length">
+         <option value="2시간 분량 (약 45,000자)">2시간 (약 45,000자)</option>
+         <option value="1.5시간 분량 (약 35,000자)">1.5시간 (약 35,000자)</option>
+         <option value="1시간 분량 (약 25,000자)">1시간 (약 25,000자)</option>
+        </select>
+       </label>
+      </div>
+      
+      <label>
+       구체적인 소재나 제목 (선택사항)
+       <textarea id="motif" rows="3" placeholder="예: 마음씨 착한 머슴과 쫓겨난 과부의 이야기"></textarea>
+      </label>
+
+      <button id="generateBtn" type="button" class="btn primary" style="background:#8a2be2; margin-top:20px; width:100%; height:50px; font-size:1.1rem;">
+       ✨ Claude 프롬프트 생성하기
+      </button>
+     </form>
+    </aside>
+    <section class="output-panel">
+     <div class="output-toolbar">
+      <div>
+       <h2>
+        클로드 프롬프트 결과
+       </h2>
+       <p id="summary">
+        아래 텍스트를 복사하여 Claude Pro에 붙여넣으세요.
+       </p>
+      </div>
+     </div>
+     <div aria-live="polite" class="results" id="results">
+        <article class="track-card" id="resultCard" style="display:none;">
+            <div class="track-head">
+             <div>
+              <h3>시스템 프롬프트</h3>
+              <p class="track-help">우측 상단의 복사 버튼을 누르세요.</p>
+             </div>
+             <button class="copy-track" type="button" id="copyBtn">복사</button>
+            </div>
+            <div class="prompt-block">
+             <pre class="command-output" id="promptOutput" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; max-height: 600px; overflow-y: auto;"></pre>
+            </div>
+        </article>
+     </div>
+    </section>
+   </section>
+  </main>
+  <script src="folktale-script.js"></script>
+ </body>
+</html>
