@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>Folktale Asset Maker 1.0</title>
+  <link href="suno-styles.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <header class="app-nav">
+   <a class="app-home-chip" href="index.html">
+    AI CONVENIENCE TOOLS
+   </a>
+   <nav aria-label="사이트 메뉴" class="app-nav-links">
+    <a class="app-nav-btn" href="suno-maker.html">수노 커멘드 메이커</a>
+    <a class="app-nav-btn" href="audio-master.html">오디오 배치 마스터</a>
+    <a class="app-nav-btn" href="thumbnail-maker.html">썸네일 프롬프트 메이커</a>
+    <a class="app-nav-btn" href="folktale-script.html">민담 대본 메이커</a>
+    <a aria-current="page" aria-disabled="true" class="app-nav-btn is-active" href="folktale-asset.html" tabindex="-1">민담 에셋 메이커</a>
+   </nav>
+  </header>
+  <main class="app-shell">
+   <section class="workspace">
+    <aside aria-label="명령어 설정" class="settings-panel" style="flex: 1.2;">
+     <div class="brand-row">
+      <div aria-hidden="true" class="app-mark" style="background:#00d2ff; color:#06111f;">
+       🎨
+      </div>
+      <div>
+       <h1>
+        Folktale Asset Maker
+       </h1>
+       <p>
+        구글 플로우/Grok/Suno 프롬프트 추출기
+       </p>
+      </div>
+     </div>
+     <form class="control-grid" id="assetForm">
+      <div class="two-col">
+       <label>
+        주인공 앵커 설정 (일관성 유지)
+        <select id="characterAnchor">
+         <option value="Korean young man in traditional hanbok and gat">젊은 선비 (Hanbok, Gat)</option>
+         <option value="Korean old man with white beard in traditional peasant clothes">나이 든 농부/머슴 (Peasant clothes)</option>
+         <option value="Korean young woman in elegant traditional hanbok">젊은 여인/규수 (Elegant Hanbok)</option>
+         <option value="Korean old woman in humble traditional hanbok">나이 든 여인/과부 (Humble Hanbok)</option>
+         <option value="Korean traditional mythical creature, goblin">도깨비/요괴 (Mythical Goblin)</option>
+        </select>
+       </label>
+       <label>
+        전체 분위기 (BGM용)
+        <select id="mood">
+         <option value="슬프고 애절한 동양풍">슬프고 애절한</option>
+         <option value="긴장감 넘치고 미스터리한 국악">긴장감·미스터리</option>
+         <option value="경쾌하고 해학적인 국악">경쾌하고 해학적인</option>
+         <option value="웅장하고 영웅적인 동양풍">웅장하고 영웅적인</option>
+         <option value="따뜻하고 감동적인 국악">따뜻하고 감동적인</option>
+        </select>
+       </label>
+      </div>
+      
+      <label>
+       Claude에서 작성한 대본 붙여넣기 (본편)
+       <textarea id="scriptInput" rows="12" placeholder="이곳에 Claude가 써준 대본 전체를 붙여넣으세요. 이 대본을 바탕으로 이미지/영상/음악 프롬프트 지시문이 생성됩니다."></textarea>
+      </label>
+
+      <button id="generateAssetBtn" type="button" class="btn primary" style="background:#00d2ff; color:#06111f; margin-top:20px; width:100%; height:50px; font-size:1.1rem; font-weight:bold;">
+       ✨ 이미지/영상/음악 추출 프롬프트 생성
+      </button>
+     </form>
+    </aside>
+    <section class="output-panel" style="flex: 0.8;">
+     <div class="output-toolbar">
+      <div>
+       <h2>
+        Claude 추출 지시문 결과
+       </h2>
+       <p id="summary">
+        아래 텍스트를 복사하여 다시 Claude에 붙여넣으세요.
+       </p>
+      </div>
+     </div>
+     <div aria-live="polite" class="results" id="results">
+        <article class="track-card" id="resultCard" style="display:none; border-color:#00d2ff;">
+            <div class="track-head">
+             <div>
+              <h3>추출 프롬프트</h3>
+              <p class="track-help">우측 상단의 복사 버튼을 누르세요.</p>
+             </div>
+             <button class="copy-track" type="button" id="copyAssetBtn">복사</button>
+            </div>
+            <div class="prompt-block">
+             <pre class="command-output" id="promptOutput" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9rem; max-height: 600px; overflow-y: auto;"></pre>
+            </div>
+        </article>
+     </div>
+    </section>
+   </section>
+  </main>
+  <script src="folktale-asset.js"></script>
+ </body>
+</html>
