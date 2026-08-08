@@ -6,8 +6,58 @@
   <title>Auto Lyric Video Maker - 브라우저 렌더러</title>
   <link href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111827'/%3E%3Cpath d='M42 13v27.5a8.5 8.5 0 1 1-5-7.7V20.2l-18 4.2v21.1a8.5 8.5 0 1 1-5-7.7V20l28-7z' fill='%23ffcf5a'/%3E%3Cpath d='M37 20.2 19 24.4v5.2l18-4.2z' fill='%2367e8f9' opacity='.92'/%3E%3C/svg%3E" rel="icon"/>
   <link href="suno-styles.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Jua&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;700&family=Playpen+Sans:wght@400;700&family=Do+Hyeon&family=Jua&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
+    /* 로컬 폰트 8종 (한국어, 영문, 태국어) @font-face 정의 */
+    @font-face {
+        font-family: 'Cafe24Danjeonghae';
+        src: url('폰트/Cafe24Danjunghae-v2.0/Cafe24Danjunghae-v2.0/Cafe24Danjunghae-v2.0.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'Cafe24Dangdanghae';
+        src: url('폰트/Cafe24Dangdanghae-v2.0/Cafe24Dangdanghae-v2.0/Cafe24Dangdanghae-v2.0.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'Cafe24Dongdong';
+        src: url('폰트/Cafe24DongdongLight_v3.0/Cafe24DongdongLight_v3.0/Cafe24DongdongLight.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'Cafe24Behappy';
+        src: url('폰트/Cafe24Behappy/Cafe24Behappy.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'Cafe24Lovingu';
+        src: url('폰트/Cafe24Lovingu/Cafe24Lovingu.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'Anuphan';
+        src: url('폰트/anuphan/Anuphan-VariableFont_wght.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'GWMSansThaiUI';
+        src: url('폰트/gwm-sans-thai/GWMSansThaiUI/Font_Files/Desktop_Fonts/TrueType/GWMSansThaiUI-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    @font-face {
+        font-family: 'PlaypenSansThai';
+        src: url('폰트/playpen-sans-thai/PlaypenSansThai-VariableFont_wght.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }
+
     /* 웹 툴 전용 스타일 추가 */
     .file-input-group {
       margin-bottom: 20px;
@@ -31,20 +81,186 @@
     .preview-container {
       width: 100%;
       background: #000;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       aspect-ratio: 16 / 9;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      user-select: none;
     }
     canvas {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      cursor: grab;
     }
+    canvas:active {
+      cursor: grabbing;
+    }
+
+    /* 캔버스 상단 팁 안내 뱃지 */
+    .preview-hint-badge {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(15, 20, 32, 0.78);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      z-index: 10;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      letter-spacing: -0.3px;
+    }
+
+    /* 실시간 배율 토스트 안내 뱃지 */
+    .preview-toast-badge {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      background: rgba(255, 207, 90, 0.18);
+      border: 1px solid rgba(255, 207, 90, 0.45);
+      color: #ffcf5a;
+      font-size: 11.5px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      z-index: 10;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    .preview-toast-badge.show {
+      opacity: 1;
+    }
+
+    /* Simple Lyric Video Maker 하단 컨트롤 바 전용 스타일 (고급 다크 톤앤매너) */
+    .simple-toolbar-wrapper {
+      margin-top: 14px;
+      width: 100%;
+    }
+    .simple-toolbar {
+      background: #141822;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+    .toolbar-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #ffcf5a;
+      white-space: nowrap;
+      font-size: 12.5px;
+    }
+    .toolbar-select {
+      background: #0b0f17;
+      color: #f8fafc;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+      min-width: 115px;
+    }
+    .toolbar-select:hover, .toolbar-select:focus {
+      border-color: #ff8a3d;
+      box-shadow: 0 0 8px rgba(255, 138, 61, 0.3);
+    }
+    
+    .toolbar-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: #0b0f17;
+      color: #ffcf5a;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toolbar-btn:hover {
+      transform: translateY(-2px);
+      background: #1e293b;
+      box-shadow: 0 4px 12px rgba(255, 207, 90, 0.25);
+    }
+    .toolbar-btn.danger {
+      color: #ef4444;
+    }
+    .toolbar-btn.danger:hover {
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    /* 가챠 믹스! (Gacha Mix!) 버튼 */
+    .btn-gacha {
+      background: linear-gradient(135deg, #ff8a3d 0%, #a855f7 50%, #ec4899 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13.5px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 4px 15px rgba(255, 138, 61, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-gacha:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 6px 20px rgba(255, 138, 61, 0.5);
+      filter: brightness(1.1);
+    }
+    .btn-gacha:active {
+      transform: translateY(1px) scale(0.97);
+    }
+    .btn-gacha.gacha-active {
+      animation: gachaPulse 0.6s ease;
+    }
+
+    @keyframes gachaPulse {
+      0% { transform: scale(1); filter: hue-rotate(0deg); }
+      50% { transform: scale(1.12) rotate(3deg); filter: hue-rotate(180deg); }
+      100% { transform: scale(1); filter: hue-rotate(360deg); }
+    }
+
     .primary-btn {
       background: linear-gradient(135deg, #ff8a3d, #e56a1b);
       color: white;
@@ -103,12 +319,25 @@
 
       <div class="file-input-group">
         <label>2. 가사 및 제목 글꼴 (폰트)</label>
-        <select id="fontFamily" style="font-size: 15px; padding: 10px; font-family: 'Malgun Gothic', sans-serif;" onchange="this.style.fontFamily = this.value + ', sans-serif';">
-          <option value="'Malgun Gothic'" style="font-family: 'Malgun Gothic', sans-serif; font-size: 16px;">맑은 고딕 (기본)</option>
-          <option value="'Noto Sans KR'" style="font-family: 'Noto Sans KR', sans-serif; font-size: 16px;">노토 산스 (깔끔하고 트렌디)</option>
-          <option value="'Do Hyeon'" style="font-family: 'Do Hyeon', sans-serif; font-size: 16px;">도현체 (레트로 감성)</option>
-          <option value="'Jua'" style="font-family: 'Jua', sans-serif; font-size: 16px;">주아체 (부드럽고 귀여운)</option>
-          <option value="'Nanum Pen Script'" style="font-family: 'Nanum Pen Script', cursive; font-size: 18px;">나눔 펜 스크립트 (손글씨)</option>
+        <select id="fontFamily" style="font-size: 14.5px; padding: 10px; font-family: 'Malgun Gothic', sans-serif;" onchange="this.style.fontFamily = this.value + ', sans-serif';">
+          <optgroup label="🇰🇷 한국어 &amp; 영문 추천 폰트">
+            <option value="'Cafe24Danjeonghae'" style="font-family: 'Cafe24Danjeonghae', sans-serif; font-size: 15px;">카페24 단정해 (정갈하고 깔끔함)</option>
+            <option value="'Cafe24Dangdanghae'" style="font-family: 'Cafe24Dangdanghae', sans-serif; font-size: 15px;">카페24 당당해 (굵고 강렬함)</option>
+            <option value="'Cafe24Dongdong'" style="font-family: 'Cafe24Dongdong', sans-serif; font-size: 15px;">카페24 동동 (동글동글 귀여움)</option>
+            <option value="'Cafe24Behappy'" style="font-family: 'Cafe24Behappy', sans-serif; font-size: 15px;">카페24 비해피 (밝고 경쾌한 손글씨)</option>
+            <option value="'Cafe24Lovingu'" style="font-family: 'Cafe24Lovingu', sans-serif; font-size: 15px;">카페24 러빙유 (감성 필기체)</option>
+            <option value="'Malgun Gothic'" style="font-family: 'Malgun Gothic', sans-serif; font-size: 15px;">맑은 고딕 (기본 고딕)</option>
+            <option value="'Noto Sans KR'" style="font-family: 'Noto Sans KR', sans-serif; font-size: 15px;">노토 산스 KR (모던 고딕)</option>
+            <option value="'Do Hyeon'" style="font-family: 'Do Hyeon', sans-serif; font-size: 15px;">도현체 (레트로 타이틀)</option>
+            <option value="'Jua'" style="font-family: 'Jua', sans-serif; font-size: 15px;">주아체 (부드러운 손글씨)</option>
+            <option value="'Nanum Pen Script'" style="font-family: 'Nanum Pen Script', cursive; font-size: 17px;">나눔 펜 스크립트 (손글씨)</option>
+          </optgroup>
+
+          <optgroup label="🇹🇭 태국어 &amp; 다국어 추천 폰트">
+            <option value="'Anuphan'" style="font-family: 'Anuphan', sans-serif; font-size: 15px;">Anuphan (태국어 깔끔한 모던 폰트)</option>
+            <option value="'GWMSansThaiUI'" style="font-family: 'GWMSansThaiUI', sans-serif; font-size: 15px;">GWM Sans Thai (태국어 정갈한 UI 폰트)</option>
+            <option value="'PlaypenSansThai'" style="font-family: 'PlaypenSansThai', sans-serif; font-size: 15px;">Playpen Sans Thai (태국어 감성 팝 폰트)</option>
+          </optgroup>
         </select>
       </div>
 
@@ -124,58 +353,166 @@
 
       <div class="file-input-group">
         <label>5. 가사 자막 설정 (선택사항)</label>
-        <select id="subtitleMode" onchange="toggleSubtitleInput()">
-          <option value="srt">SRT 파일 업로드 (정확한 씽크)</option>
-          <option value="text">가사 텍스트 직접 입력 (자동 스크롤)</option>
-        </select>
         
-        <div id="srtInputWrap" style="margin-top: 10px;">
+        <div style="margin-top: 10px; margin-bottom: 15px;">
+          <div style="color: #67e8f9; font-size: 13px; font-weight: bold; margin-bottom: 6px;">
+            📁 SRT 자막 파일 업로드 (정확한 음원 박자 씽크)
+          </div>
           <input type="file" id="srtInput" accept=".srt">
         </div>
         
-        <div id="textInputWrap" style="display: none; margin-top: 10px;">
-          <div style="color: #ff5252; font-size: 12px; margin-bottom: 8px; line-height: 1.4;">
-            ※ 주의: 텍스트 모드는 음악 박자에 싱크를 맞출 수 없으며 일정한 속도로만 스크롤됩니다. <b>현재 부르는 가사를 화면 중앙에 오게 하려면 반드시 위에서 SRT 방식을 선택하세요!</b>
+        <div style="margin-top: 15px;">
+          <div style="color: #ff8a3d; font-size: 13.5px; font-weight: bold; margin-bottom: 6px; line-height: 1.4;">
+            📝 가사 텍스트 직접 입력<br>
+            <span style="font-size: 12px; color: #ffa96b; font-weight: normal;">(복사 &amp; 붙여넣기 / 자동 스크롤)</span>
           </div>
-          <textarea id="rawLyrics" placeholder="여기에 가사를 붙여넣으세요. 빈 줄 단위로 단락이 나뉩니다."></textarea>
+          <div style="color: #a3a8b2; font-size: 12px; margin-bottom: 8px; line-height: 1.4;">
+            ※ SRT 파일이 없는 경우 아래 상자에 가사를 복사(Ctrl+C)해서 붙여넣으세요(Ctrl+V). 빈 줄 단위로 단락이 나뉩니다.
+          </div>
+          <textarea id="rawLyrics" placeholder="여기에 가사를 복사해서 붙여넣으세요.&#10;&#10;예시:&#10;첫 번째 가사 구절입니다.&#10;&#10;두 번째 가사 구절입니다." style="width: 100%; height: 160px; border-radius: 6px; border: 1px solid rgba(255,138,61,0.4); padding: 12px; background: #0b0c0f; color: #ffffff; font-size: 14px; line-height: 1.6; resize: vertical; box-sizing: border-box;"></textarea>
         </div>
       </div>
 
-      <div class="file-input-group">
-        <label>6. 화면 비율 및 해상도</label>
-        <select id="aspectRatio">
-          <option value="1k_16:9">1K (FHD) 가로형 - 1920x1080</option>
-          <option value="1k_9:16">1K (FHD) 세로형 - 1080x1920</option>
-          <option value="2k_16:9">2K (QHD) 가로형 - 2560x1440</option>
-          <option value="2k_9:16">2K (QHD) 세로형 - 1440x2560</option>
-          <option value="4k_16:9">4K (UHD) 가로형 - 3840x2160</option>
-          <option value="4k_9:16">4K (UHD) 세로형 - 2160x3840</option>
-        </select>
-      </div>
-
-      <button id="renderBtn" class="primary-btn" onclick="startRendering()">영상 렌더링 시작</button>
-      
-      <div id="statusPanel" class="status-panel">
-        준비 중...
-      </div>
-      
     </aside>
     
-    <!-- 오른쪽 프리뷰 영역 -->
+    <!-- 오른쪽 프리뷰 및 제어 영역 -->
     <section class="output-panel">
       <div class="output-toolbar">
         <h2>실시간 렌더링 화면</h2>
         <p>영상이 재생되는 동안 백그라운드에서 고음질로 녹화됩니다.</p>
       </div>
+
+      <!-- 캔버스 프리뷰, 배율 토스트 & 상단 팁 뱃지 -->
       <div class="preview-container" id="previewContainer">
+        <div class="preview-toast-badge" id="previewToast">🎯 파형 전체 크기: 100%</div>
+        <div class="preview-hint-badge">❖ 마우스 드래그/휠 스크롤 (전체 크기 조절) | 더블 클릭: 초기화</div>
         <canvas id="renderCanvas" width="1920" height="1080"></canvas>
       </div>
+
+      <!-- Simple Lyric Video Maker 스타일 하단 툴바 (2줄 구성: 제어 & 비주얼 스타일) -->
+      <div class="simple-toolbar-wrapper">
+        <div class="simple-toolbar">
+          <!-- 1번째 줄: 실행 제어 & 핵심 파형 (재생/정지 + 가챠 믹스 + 파형 선택) -->
+          <div class="toolbar-row">
+            <div class="toolbar-group play-controls">
+              <button id="btnPlayPause" class="toolbar-btn" title="재생 / 일시정지">▶</button>
+              <button id="btnStop" class="toolbar-btn danger" title="정지 및 처음으로">⏹</button>
+            </div>
+
+            <button id="btnGachaMix" class="btn-gacha">✨ 가챠 믹스!</button>
+            
+            <div class="toolbar-group">
+              <label for="waveformStyleSelect">📊 파형:</label>
+              <select id="waveformStyleSelect" class="toolbar-select">
+                <option value="bars">막대 (Bar)</option>
+                <option value="solid_bars">솔리드 막대</option>
+                <option value="curve">주파수 곡선</option>
+                <option value="oscilloscope">오실로스코프</option>
+                <option value="grid">VFD 그리드</option>
+                <option value="particle">파티클 웨이브</option>
+                <option value="ring">원형 링</option>
+                <option value="vumeter">네온 VU 메터</option>
+                <option value="none">사용 안함</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2번째 줄: 디테일 연출 (색상 + 효과 + 장면) -->
+          <div class="toolbar-row">
+            <div class="toolbar-group">
+              <label for="waveformColorSelect">🎨 색상:</label>
+              <select id="waveformColorSelect" class="toolbar-select">
+                <option value="translucent_white">⚪ 반투명 화이트 (Soft White)</option>
+                <option value="translucent_gold">🟡 반투명 골드 (Soft Gold)</option>
+                <option value="multicolor">랜덤 칼라 (Multicolor)</option>
+                <option value="cyan">사이버 시안</option>
+                <option value="pink">네온 핑크</option>
+                <option value="lime">라임 그린</option>
+                <option value="rainbow">레인보우</option>
+                <option value="classic">VFD 클래식</option>
+                <option value="fluorescent">형광 콤보</option>
+                <option value="cyberpunk">사이버펑크</option>
+              </select>
+            </div>
+
+            <div class="toolbar-group">
+              <label for="effectStyleSelect">✨ 효과:</label>
+              <select id="effectStyleSelect" class="toolbar-select">
+                <option value="none">기본 효과 (Off)</option>
+                <option value="glow">네온 글로우</option>
+                <option value="mirror">미러 스플릿</option>
+                <option value="sparkle">파티클 스파클</option>
+                <option value="glitch">글리치 홀로그램</option>
+                <option value="ripple">레인보우 파동</option>
+              </select>
+            </div>
+
+            <div class="toolbar-group">
+              <label for="sceneStyleSelect">📺 장면:</label>
+              <select id="sceneStyleSelect" class="toolbar-select">
+                <option value="none">기본 화면 (Off)</option>
+                <option value="grain">시네마 그레인</option>
+                <option value="flare">드림 렌즈 플레어</option>
+                <option value="dust">네온 사이버 더스트</option>
+                <option value="vignette">빈티지 비넷</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
       
-      <div style="margin-top: 20px; font-size: 13px; color: #a3a8b2; line-height: 1.6;">
-        <h3 style="color:#f5c45e; margin-bottom: 5px;">💡 안내사항</h3>
+      <div style="margin-top: 15px; font-size: 13px; color: #a3a8b2; line-height: 1.5;">
+        <h3 style="color:#f5c45e; margin-bottom: 4px; font-size: 14px;">💡 안내사항</h3>
         - 영상 렌더링은 음악 길이만큼 실시간으로 진행됩니다.<br>
         - 녹화 중에는 다른 탭으로 이동하지 마세요. (브라우저 정책상 렌더링이 멈출 수 있습니다.)<br>
         - 작업이 완료되면 고화질(webm) 영상 파일이 자동으로 다운로드됩니다.
+      </div>
+
+      <!-- 하단 해상도 및 파형 상세 설정 (한 화면 배치 2열 그리드) -->
+      <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <!-- 왼쪽 6번: 화면 비율 -->
+          <div class="file-input-group" style="margin: 0; padding: 10px 12px;">
+            <label style="font-size: 13px; margin-bottom: 6px;">6. 화면 비율 및 해상도</label>
+            <select id="aspectRatio" style="padding: 6px 10px; min-height: 38px; font-size: 13px;">
+              <option value="1k_16:9">1K (FHD) 가로형 - 1920x1080</option>
+              <option value="1k_9:16">1K (FHD) 세로형 - 1080x1920</option>
+              <option value="2k_16:9">2K (QHD) 가로형 - 2560x1440</option>
+              <option value="2k_9:16">2K (QHD) 세로형 - 1440x2560</option>
+              <option value="4k_16:9" selected>4K (UHD) 가로형 - 3840x2160</option>
+              <option value="4k_9:16">4K (UHD) 세로형 - 2160x3840</option>
+            </select>
+          </div>
+
+          <!-- 오른쪽 9번: 파형 막대 높이 -->
+          <div class="file-input-group" style="margin: 0; padding: 10px 12px;">
+            <label style="font-size: 13px; margin-bottom: 6px;">9. 파형 세부 높이 (막대 높이): <span id="valWaveHeight" style="color:#ffcf5a; font-weight:bold;">110</span>px</label>
+            <input type="range" id="waveformHeight" min="30" max="300" value="110" style="width: 100%; cursor: pointer;" oninput="document.getElementById('valWaveHeight').innerText = this.value;">
+          </div>
+
+          <!-- 하단 폼용 동기화 hidden 셀렉터 및 디폴트 위치값 -->
+          <select id="waveformStyle" style="display:none;">
+            <option value="bars">bars</option>
+            <option value="curve">curve</option>
+            <option value="oscilloscope">oscilloscope</option>
+            <option value="grid">grid</option>
+            <option value="none">none</option>
+          </select>
+          <select id="waveformColor" style="display:none;">
+            <option value="cyan">cyan</option>
+            <option value="pink">pink</option>
+            <option value="lime">lime</option>
+            <option value="rainbow">rainbow</option>
+            <option value="multicolor">multicolor</option>
+          </select>
+          <input type="hidden" id="waveformBottom" value="20">
+        </div>
+
+        <button id="renderBtn" class="primary-btn" onclick="startRendering()" style="margin-top: 5px;">영상 렌더링 시작</button>
+        
+        <div id="statusPanel" class="status-panel">
+          준비 중...
+        </div>
       </div>
     </section>
     
@@ -183,17 +520,233 @@
   </main>
 
   <script>
+    // --- 글로벌 인터랙티브 변수 (마우스 드래그 & 휠 스크롤 위치/크기 상태) ---
+    const transformState = {
+      lyrics: { x: 0, y: 0, scale: 1.0 },
+      waveform: { x: 0, y: 0, scale: 1.0 },
+      selectedTarget: null, // 'lyrics' | 'waveform' | null
+      isDragging: false,
+      dragStart: { x: 0, y: 0 }
+    };
+
+    let toastTimer = null;
+    function showPreviewToast(msg) {
+      const toast = document.getElementById('previewToast');
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // 파티클 & 오버레이 애니메이션용 프레임 변수
+    let particleArray = [];
+    let dustArray = [];
+
     // --- UI 로직 ---
+    function onSubModeRadioChange(val) {
+      const hiddenSelect = document.getElementById('subtitleMode');
+      if (hiddenSelect) hiddenSelect.value = val;
+      toggleSubtitleInput();
+    }
+
     function toggleSubtitleInput() {
-      const mode = document.getElementById('subtitleMode').value;
-      if (mode === 'srt') {
-        document.getElementById('srtInputWrap').style.display = 'block';
-        document.getElementById('textInputWrap').style.display = 'none';
-      } else {
-        document.getElementById('srtInputWrap').style.display = 'none';
-        document.getElementById('textInputWrap').style.display = 'block';
+      const modeText = document.getElementById('modeText');
+      const hiddenSelect = document.getElementById('subtitleMode');
+      
+      let mode = 'srt';
+      if (modeText && modeText.checked) mode = 'text';
+      else if (hiddenSelect) mode = hiddenSelect.value;
+      
+      if (hiddenSelect) hiddenSelect.value = mode;
+
+      const srtWrap = document.getElementById('srtInputWrap');
+      const textWrap = document.getElementById('textInputWrap');
+      
+      if (srtWrap && textWrap) {
+        if (mode === 'srt') {
+          srtWrap.style.setProperty('display', 'block', 'important');
+          textWrap.style.setProperty('display', 'none', 'important');
+        } else {
+          srtWrap.style.setProperty('display', 'none', 'important');
+          textWrap.style.setProperty('display', 'block', 'important');
+        }
       }
     }
+
+    // 실시간 프리뷰 렌더링 루프
+    function startLivePreviewLoop() {
+      function liveLoop() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+          const cvs = document.getElementById('renderCanvas');
+          if (cvs) {
+            const ctx = cvs.getContext('2d');
+            const val = document.getElementById('aspectRatio').value;
+            const isVertical = val.includes('9:16');
+            const songTitleStr = document.getElementById('songTitle') ? document.getElementById('songTitle').value.trim() : '';
+            const fontFamily = document.getElementById('fontFamily') ? document.getElementById('fontFamily').value : "'Malgun Gothic'";
+            
+            const curTime = (audioElement && !audioElement.paused) ? audioElement.currentTime : 0;
+            const totalDur = (audioElement && audioElement.duration) ? audioElement.duration : 100;
+            
+            drawFrame(ctx, cvs.width, cvs.height, curTime, totalDur, isVertical, songTitleStr, fontFamily);
+          }
+        }
+        requestAnimationFrame(liveLoop);
+      }
+      requestAnimationFrame(liveLoop);
+    }
+
+    // --- 마우스 드래그 및 휠 스크롤 인터랙션 셋업 ---
+    function setupCanvasInteraction() {
+      const cvs = document.getElementById('renderCanvas');
+      if (!cvs) return;
+
+      function getCanvasCoordinates(e) {
+        const rect = cvs.getBoundingClientRect();
+        const scaleX = cvs.width / rect.width;
+        const scaleY = cvs.height / rect.height;
+        return {
+          x: (e.clientX - rect.left) * scaleX,
+          y: (e.clientY - rect.top) * scaleY
+        };
+      }
+
+      cvs.addEventListener('mousedown', (e) => {
+        const pos = getCanvasCoordinates(e);
+        const halfH = cvs.height / 2;
+
+        if (pos.y < halfH) {
+          transformState.selectedTarget = 'lyrics';
+        } else {
+          transformState.selectedTarget = 'waveform';
+        }
+
+        transformState.isDragging = true;
+        transformState.dragStart = {
+          x: pos.x - transformState[transformState.selectedTarget].x,
+          y: pos.y - transformState[transformState.selectedTarget].y
+        };
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!transformState.isDragging || !transformState.selectedTarget) return;
+        const pos = getCanvasCoordinates(e);
+        
+        transformState[transformState.selectedTarget].x = pos.x - transformState.dragStart.x;
+        transformState[transformState.selectedTarget].y = pos.y - transformState.dragStart.y;
+      });
+
+      window.addEventListener('mouseup', () => {
+        transformState.isDragging = false;
+      });
+
+      // 더블 클릭 시 위치 및 크기 초기화 (Reset)
+      cvs.addEventListener('dblclick', () => {
+        transformState.lyrics = { x: 0, y: 0, scale: 1.0 };
+        transformState.waveform = { x: 0, y: 0, scale: 1.0 };
+        showPreviewToast('🔄 파형 및 자막 위치/크기가 초기화되었습니다.');
+      });
+
+      // 마우스 휠 스크롤 (전체 2D 비율 비율 확대 / 축소)
+      cvs.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const pos = getCanvasCoordinates(e);
+        const halfH = cvs.height / 2;
+        const target = (pos.y < halfH) ? 'lyrics' : 'waveform';
+        
+        transformState.selectedTarget = target;
+
+        const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+        let newScale = transformState[target].scale * zoomFactor;
+        newScale = Math.max(0.3, Math.min(3.5, newScale));
+        
+        transformState[target].scale = newScale;
+
+        const targetLabel = target === 'lyrics' ? '가사 자막' : '오디오 파형';
+        const percent = Math.round(newScale * 100);
+        showPreviewToast(`🎯 ${targetLabel} 전체 비율: ${percent}%`);
+      }, { passive: false });
+    }
+
+    // --- 가챠 믹스! (Gacha Mix!) 무작위 조합 믹서 ---
+    function triggerGachaMix() {
+      const waveSelect = document.getElementById('waveformStyleSelect');
+      const colorSelect = document.getElementById('waveformColorSelect');
+      const effectSelect = document.getElementById('effectStyleSelect');
+      const sceneSelect = document.getElementById('sceneStyleSelect');
+      const btn = document.getElementById('btnGachaMix');
+
+      if (waveSelect) waveSelect.selectedIndex = Math.floor(Math.random() * (waveSelect.options.length - 1));
+      if (colorSelect) colorSelect.selectedIndex = Math.floor(Math.random() * colorSelect.options.length);
+      if (effectSelect) effectSelect.selectedIndex = Math.floor(Math.random() * effectSelect.options.length);
+      if (sceneSelect) sceneSelect.selectedIndex = Math.floor(Math.random() * sceneSelect.options.length);
+
+      const hiddenWave = document.getElementById('waveformStyle');
+      const hiddenColor = document.getElementById('waveformColor');
+      if (hiddenWave && waveSelect) hiddenWave.value = waveSelect.value;
+      if (hiddenColor && colorSelect) hiddenColor.value = colorSelect.value;
+
+      if (btn) {
+        btn.classList.add('gacha-active');
+        setTimeout(() => btn.classList.remove('gacha-active'), 600);
+      }
+    }
+
+    // 페이지 로딩 및 이벤트 바인딩
+    window.addEventListener('DOMContentLoaded', () => {
+      const modeSrt = document.getElementById('modeSrt');
+      const modeText = document.getElementById('modeText');
+      if (modeSrt) {
+        modeSrt.addEventListener('change', toggleSubtitleInput);
+        modeSrt.addEventListener('click', toggleSubtitleInput);
+      }
+      if (modeText) {
+        modeText.addEventListener('change', toggleSubtitleInput);
+        modeText.addEventListener('click', toggleSubtitleInput);
+      }
+      toggleSubtitleInput();
+      
+      const btnPlayPause = document.getElementById('btnPlayPause');
+      const btnStop = document.getElementById('btnStop');
+      const btnGacha = document.getElementById('btnGachaMix');
+
+      if (btnPlayPause) {
+        btnPlayPause.addEventListener('click', () => {
+          if (!audioElement || !audioElement.src) {
+            alert('먼저 4번 항목에서 노래 파일을 업로드 해주세요!');
+            return;
+          }
+          if (audioElement.paused) {
+            audioElement.play();
+            btnPlayPause.innerText = '⏸';
+          } else {
+            audioElement.pause();
+            btnPlayPause.innerText = '▶';
+          }
+        });
+      }
+
+      if (btnStop) {
+        btnStop.addEventListener('click', () => {
+          if (audioElement) {
+            audioElement.pause();
+            audioElement.currentTime = 0;
+          }
+          if (btnPlayPause) btnPlayPause.innerText = '▶';
+        });
+      }
+
+      if (btnGacha) {
+        btnGacha.addEventListener('click', triggerGachaMix);
+      }
+
+      setupCanvasInteraction();
+      startLivePreviewLoop();
+      setInterval(toggleSubtitleInput, 200);
+    });
 
     document.getElementById('aspectRatio').addEventListener('change', function(e) {
       const cvs = document.getElementById('renderCanvas');
@@ -223,7 +776,354 @@
     let recordedChunks = [];
     let animationId = null;
 
-    // SRT 파서 (단순화된 버전)
+    let analyserNode = null;
+    let freqDataArray = null;
+    let timeDataArray = null;
+
+    // 파형 드로잉 엔진 함수
+    function drawWaveform(ctx, w, h, scale) {
+      const styleEl = document.getElementById('waveformStyleSelect');
+      const style = styleEl ? styleEl.value : 'bars';
+      if (style === 'none') return;
+
+      const customH = document.getElementById('waveformHeight') ? parseFloat(document.getElementById('waveformHeight').value) : 110;
+      const customBottom = document.getElementById('waveformBottom') ? parseFloat(document.getElementById('waveformBottom').value) : 20;
+
+      const waveH = customH * scale;
+      const startY = h - (customBottom * scale);
+      const timeNow = performance.now() / 1000;
+
+      let activeFreq = null;
+      let activeTime = null;
+
+      if (analyserNode && freqDataArray && timeDataArray && audioElement && !audioElement.paused) {
+        analyserNode.getByteFrequencyData(freqDataArray);
+        analyserNode.getByteTimeDomainData(timeDataArray);
+        activeFreq = freqDataArray;
+        activeTime = timeDataArray;
+      } else {
+        const sampleCount = 64;
+        activeFreq = new Uint8Array(sampleCount);
+        activeTime = new Uint8Array(sampleCount);
+        for (let i = 0; i < sampleCount; i++) {
+          const w1 = Math.sin(i * 0.25 + timeNow * 4) * 0.4 + 0.5;
+          const w2 = Math.cos(i * 0.18 - timeNow * 3) * 0.3 + 0.4;
+          activeFreq[i] = Math.floor(Math.min(1.0, w1 * w2 + 0.15) * 220);
+          activeTime[i] = Math.floor(128 + Math.sin(i * 0.35 + timeNow * 5) * 45);
+        }
+      }
+
+      const colorEl = document.getElementById('waveformColorSelect');
+      const colorMode = colorEl ? colorEl.value : 'translucent_white';
+      const binCount = activeFreq.length;
+
+      ctx.save();
+
+      const waveScale = transformState.waveform.scale;
+      const waveOffsetX = transformState.waveform.x;
+      const waveOffsetY = transformState.waveform.y;
+
+      const centerX = (w / 2) + waveOffsetX;
+      const centerY = startY + waveOffsetY - (waveH / 2);
+
+      ctx.translate(centerX, centerY);
+      ctx.scale(waveScale, waveScale);
+      ctx.translate(-centerX, -centerY);
+
+      function getColor(index, total) {
+        if (colorMode === 'translucent_white') return 'rgba(255, 255, 255, 0.72)';
+        if (colorMode === 'translucent_gold') return 'rgba(255, 215, 0, 0.75)';
+        if (colorMode === 'pink') return '#ff007f';
+        if (colorMode === 'lime') return '#adff2f';
+        if (colorMode === 'cyan') return '#00d2ff';
+        if (colorMode === 'classic') return index > total * 0.8 ? '#ff3b30' : index > total * 0.5 ? '#ff9500' : '#34c759';
+        if (colorMode === 'fluorescent') return index % 2 === 0 ? '#10ff70' : '#ff0f80';
+        if (colorMode === 'cyberpunk') return index > total * 0.6 ? '#ff00ff' : '#00ffff';
+        if (colorMode === 'rainbow') {
+          const hue = Math.floor((index / total * 360 + timeNow * 70) % 360);
+          return `hsl(${hue}, 100%, 65%)`;
+        }
+        if (colorMode === 'multicolor') {
+          const hue = Math.floor((index / total * 260 + timeNow * 40) % 360);
+          return `hsl(${hue}, 100%, 60%)`;
+        }
+        return 'rgba(255, 255, 255, 0.72)';
+      }
+
+      if (style === 'bars' || style === 'solid_bars') {
+        const barCount = 48;
+        const padding = 5 * scale;
+        const barWidth = (w - (barCount + 1) * padding) / barCount;
+
+        for (let i = 0; i < barCount; i++) {
+          const binIdx = Math.floor(i * (binCount / barCount));
+          const val = activeFreq[binIdx] / 255;
+          const barHeight = Math.max(6 * scale, val * waveH);
+          const x = padding + i * (barWidth + padding);
+          const y = startY - barHeight;
+
+          const col = getColor(i, barCount);
+          ctx.fillStyle = col;
+          ctx.shadowColor = col;
+          ctx.shadowBlur = style === 'bars' ? 10 * scale : 4 * scale;
+
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(x, y, barWidth, barHeight, 3 * scale);
+          } else {
+            ctx.rect(x, y, barWidth, barHeight);
+          }
+          ctx.fill();
+
+          if (style === 'bars') {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x, y - (4 * scale), barWidth, 2 * scale);
+          }
+        }
+      } else if (style === 'curve') {
+        const pts = 64;
+        const step = w / pts;
+
+        ctx.shadowBlur = 14 * scale;
+        const col = getColor(0, 1);
+        ctx.strokeStyle = col;
+        ctx.shadowColor = col;
+        ctx.lineWidth = 4 * scale;
+
+        ctx.beginPath();
+        for (let i = 0; i <= pts; i++) {
+          const binIdx = Math.floor(i * (binCount / pts));
+          const val = (activeFreq[binIdx] || 0) / 255;
+          const x = i * step;
+          const y = startY - (val * waveH);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        ctx.lineTo(w, startY);
+        ctx.lineTo(0, startY);
+        ctx.closePath();
+        ctx.fillStyle = colorMode === 'pink' ? 'rgba(255, 0, 127, 0.18)' :
+                        colorMode === 'lime' ? 'rgba(173, 255, 47, 0.18)' : 'rgba(255, 255, 255, 0.15)';
+        ctx.fill();
+      } else if (style === 'oscilloscope') {
+        ctx.lineWidth = 3.5 * scale;
+        const col = getColor(0, 1);
+        ctx.strokeStyle = col;
+        ctx.shadowColor = col;
+        ctx.shadowBlur = 12 * scale;
+
+        ctx.beginPath();
+        const sliceW = w / activeTime.length;
+        let x = 0;
+        const centerY = startY - (waveH / 2);
+
+        for (let i = 0; i < activeTime.length; i++) {
+          const v = activeTime[i] / 128.0;
+          const y = centerY + (v - 1) * (waveH / 2);
+
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceW;
+        }
+        ctx.stroke();
+      } else if (style === 'grid') {
+        const cols = 44;
+        const rows = 8;
+        const cellW = (w - (cols + 1) * 4 * scale) / cols;
+        const cellH = (waveH - (rows + 1) * 3 * scale) / rows;
+
+        for (let c = 0; c < cols; c++) {
+          const binIdx = Math.floor(c * (binCount / cols));
+          const val = (activeFreq[binIdx] || 0) / 255;
+          const activeRows = Math.floor(val * rows);
+
+          for (let r = 0; r < rows; r++) {
+            const x = 4 * scale + c * (cellW + 4 * scale);
+            const y = startY - (r + 1) * (cellH + 3 * scale);
+            const isActive = r < activeRows;
+
+            if (isActive) {
+              const col = getColor(c, cols);
+              ctx.fillStyle = col;
+              ctx.shadowColor = col;
+              ctx.shadowBlur = 6 * scale;
+            } else {
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+              ctx.shadowBlur = 0;
+            }
+            ctx.fillRect(x, y, cellW, cellH);
+          }
+        }
+      } else if (style === 'ring') {
+        const cX = w / 2;
+        const cY = startY - waveH / 2;
+        const radius = waveH * 0.4;
+        const pts = 48;
+
+        ctx.lineWidth = 3 * scale;
+        ctx.shadowBlur = 10 * scale;
+
+        ctx.beginPath();
+        for (let i = 0; i < pts; i++) {
+          const angle = (i / pts) * Math.PI * 2;
+          const val = (activeFreq[i % binCount] || 0) / 255;
+          const r = radius + val * 40 * scale;
+          const px = cX + Math.cos(angle) * r;
+          const py = cY + Math.sin(angle) * r;
+          const col = getColor(i, pts);
+          ctx.strokeStyle = col;
+          ctx.shadowColor = col;
+
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    // 효과 (Effect Layer) 오버레이 드로잉 함수
+    function drawEffectOverlay(ctx, w, h, scale) {
+      const effectSelect = document.getElementById('effectStyleSelect');
+      const effect = effectSelect ? effectSelect.value : 'none';
+      if (effect === 'none') return;
+
+      const timeNow = performance.now() / 1000;
+      ctx.save();
+
+      if (effect === 'glow') {
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = 'rgba(255, 207, 90, 0.06)';
+        ctx.fillRect(0, 0, w, h);
+      } else if (effect === 'sparkle') {
+        if (particleArray.length < 30) {
+          particleArray.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 4 * scale + 1,
+            speedY: -Math.random() * 2 - 0.5,
+            alpha: Math.random() * 0.8 + 0.2
+          });
+        }
+        particleArray.forEach((p, idx) => {
+          p.y += p.speedY;
+          p.alpha -= 0.005;
+          if (p.y < 0 || p.alpha <= 0) {
+            particleArray[idx] = {
+              x: Math.random() * w,
+              y: h + 10,
+              r: Math.random() * 4 * scale + 1,
+              speedY: -Math.random() * 2 - 0.5,
+              alpha: 0.9
+            };
+          }
+          ctx.fillStyle = `rgba(255, 255, 255, ${p.alpha})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      } else if (effect === 'glitch') {
+        if (Math.random() < 0.15) {
+          const sliceH = Math.random() * 30 * scale + 5;
+          const sliceY = Math.random() * (h - sliceH);
+          ctx.fillStyle = 'rgba(255, 207, 90, 0.12)';
+          ctx.fillRect(0, sliceY, w, sliceH);
+        }
+      } else if (effect === 'ripple') {
+        const waveY = (Math.sin(timeNow * 3) * 0.5 + 0.5) * h;
+        const grad = ctx.createLinearGradient(0, waveY - 20, 0, waveY + 20);
+        grad.addColorStop(0, 'rgba(236, 72, 153, 0)');
+        grad.addColorStop(0.5, 'rgba(255, 138, 61, 0.2)');
+        grad.addColorStop(1, 'rgba(236, 72, 153, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, waveY - 20, w, 40);
+      }
+
+      ctx.restore();
+    }
+
+    // 장면 (Scene Overlay) 배경 오버레이 드로잉 함수
+    function drawSceneOverlay(ctx, w, h, scale) {
+      const sceneSelect = document.getElementById('sceneStyleSelect');
+      const scene = sceneSelect ? sceneSelect.value : 'none';
+      if (scene === 'none') return;
+
+      ctx.save();
+
+      if (scene === 'vignette') {
+        const grad = ctx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.3, w/2, h/2, Math.max(w,h)*0.7);
+        grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0.75)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      } else if (scene === 'flare') {
+        const timeNow = performance.now() / 1000;
+        const flareX = w * 0.8 + Math.sin(timeNow) * 50;
+        const flareY = h * 0.2 + Math.cos(timeNow) * 30;
+        const grad = ctx.createRadialGradient(flareX, flareY, 10, flareX, flareY, 350 * scale);
+        grad.addColorStop(0, 'rgba(255, 230, 180, 0.35)');
+        grad.addColorStop(0.4, 'rgba(236, 72, 153, 0.15)');
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+      } else if (scene === 'dust') {
+        if (dustArray.length < 25) {
+          dustArray.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: Math.random() * 3 * scale + 1,
+            speedX: (Math.random() - 0.5) * 0.8,
+            speedY: (Math.random() - 0.5) * 0.8
+          });
+        }
+        ctx.fillStyle = 'rgba(255, 207, 90, 0.35)';
+        dustArray.forEach(d => {
+          d.x += d.speedX;
+          d.y += d.speedY;
+          if (d.x < 0) d.x = w;
+          if (d.x > w) d.x = 0;
+          if (d.y < 0) d.y = h;
+          if (d.y > h) d.y = 0;
+          ctx.fillRect(d.x, d.y, d.size, d.size);
+        });
+      }
+
+      ctx.restore();
+    }
+
+    // 선택 대상 영역(자막/파형) 드래그 가이드 하이라이트 표시
+    function drawSelectionHighlight(ctx, w, h, scale) {
+      if (!transformState.selectedTarget) return;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 207, 90, 0.65)';
+      ctx.lineWidth = 2 * scale;
+      ctx.setLineDash([8 * scale, 6 * scale]);
+
+      if (transformState.selectedTarget === 'lyrics') {
+        const lx = (w * 0.1) + transformState.lyrics.x;
+        const ly = (h * 0.3) + transformState.lyrics.y;
+        const lw = w * 0.8;
+        const lh = h * 0.35 * transformState.lyrics.scale;
+        ctx.strokeRect(lx, ly, lw, lh);
+      } else if (transformState.selectedTarget === 'waveform') {
+        const customBottom = document.getElementById('waveformBottom') ? parseFloat(document.getElementById('waveformBottom').value) : 20;
+        const wy = h - (customBottom * scale) + transformState.waveform.y;
+        const waveScale = transformState.waveform.scale;
+        const boxW = (w - 80 * scale) * waveScale;
+        const boxH = 120 * scale * waveScale;
+        const boxX = (w / 2 + transformState.waveform.x) - (boxW / 2);
+        ctx.strokeRect(boxX, wy - boxH, boxW, boxH);
+      }
+
+      ctx.restore();
+    }
+
+    // SRT 파서
     function parseSRT(data) {
       const pattern = /(\d+)\n([\d:,]+)\s+-->\s+([\d:,]+)\n([\s\S]*?(?=\n\n\d+|$))/g;
       const result = [];
@@ -261,28 +1161,24 @@
       img.src = url;
     });
 
-    // 스마트 줄바꿈 알고리즘 (1안/2안 통합)
+    // 스마트 줄바꿈 알고리즘
     function smartBalanceWrap(text, ctx, maxW, scale) {
         if (!text.trim()) return [];
         const fullWidth = ctx.measureText(text).width;
         
-        // 1. 여유로울 때: 그대로 반환
         if (fullWidth <= maxW) {
             return [{ text: text, w: fullWidth, compress: false, h: 45 * scale }];
         }
         
-        // 2. 약간 초과할 때 (약 15% 이내) -> 압축 (2안)
         if (fullWidth <= maxW * 1.15) {
             return [{ text: text, w: maxW, compress: true, h: 45 * scale }];
         }
         
-        // 3. 많이 초과할 때 -> 2줄 분할 (1안)
         const words = text.split(' ');
         if (words.length <= 1) {
-            return [{ text: text, w: maxW, compress: true, h: 45 * scale }]; // 띄어쓰기 없으면 무조건 압축
+            return [{ text: text, w: maxW, compress: true, h: 45 * scale }];
         }
         
-        // 의미(띄어쓰기) 단위로 분할하되, 위아래 길이가 가장 균등해지는 중앙점 찾기
         let bestDiff = Infinity;
         let bestSplitIndex = 1;
         for (let i = 1; i < words.length; i++) {
@@ -307,236 +1203,280 @@
         ];
     }
 
-    // 캔버스 드로잉 (파이썬 로직 이식)
+    // 캔버스 드로잉 메인 루프
     function drawFrame(ctx, w, h, time, duration, isVertical, songTitleStr = '', fontFamily = "'Malgun Gothic'") {
       const scale = Math.max(w, h) / 1920;
       
-      // 배경 (블랙)
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, w, h);
       
-      // 레이아웃 분할
       let leftW = isVertical ? w : w / 2;
       let topH = isVertical ? h / 2 : h;
-      let lyricsX = isVertical ? 0 : w / 2;
-      let lyricsYStart = isVertical ? topH : 0;
+      let lyricsX = (isVertical ? 0 : w / 2) + transformState.lyrics.x;
+      let lyricsYStart = (isVertical ? topH : 0) + transformState.lyrics.y;
       let lyricsW = isVertical ? w : w / 2;
       let lyricsH = isVertical ? h / 2 : h;
       const maxW = lyricsW - (80 * scale);
       
-      // 커버 이미지 그리기
+      const coverMargin = isVertical ? 150 : 200;
+      const coverSize = Math.min(leftW, topH) - (coverMargin * scale);
+      const coverX = (leftW - coverSize) / 2;
+      const coverY = (topH - coverSize) / 2;
+
       if (coverImageObj) {
         ctx.save();
-        
-        // 선명한 앨범 커버 (중앙)
         ctx.filter = 'none';
-        const coverMargin = isVertical ? 150 : 200;
-        const coverSize = Math.min(leftW, topH) - (coverMargin * scale);
-        
-        // 정방형 크롭
         let sSize = Math.min(coverImageObj.width, coverImageObj.height);
         let sx = (coverImageObj.width - sSize) / 2;
         let sy = (coverImageObj.height - sSize) / 2;
-        
-        const coverX = (leftW - coverSize) / 2;
-        const coverY = (topH - coverSize) / 2;
         ctx.drawImage(coverImageObj, sx, sy, sSize, sSize, coverX, coverY, coverSize, coverSize);
         ctx.restore();
-      }
-      
-      // 자막 렌더링
-      if (!lyricsData.length) return;
-      
-      const fontSize = (isVertical ? 40 : 45) * scale;
-      ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
-      ctx.textBaseline = 'top';
-      const lineSpacing = 35 * scale; // 겹침 방지를 위해 간격을 20->35로 넉넉하게 확장
-      const blockSpacing = 60 * scale;
-      
-      // 각 블록의 크기 계산 (자동 줄바꿈 적용 캐싱)
-      lyricsData.forEach(item => {
-        if (!item.parsedLines) {
-           item.parsedLines = [];
-           // maxW는 drawFrame 최상단 스코프에서 사용
-           const paragraphs = item.text.split('\n');
-           
-           paragraphs.forEach(pText => {
-               const lines = smartBalanceWrap(pText, ctx, maxW, scale);
-               item.parsedLines.push(...lines);
-           });
-           
-           if (item.parsedLines.length > 0) {
-               item.hTotal = item.parsedLines.reduce((sum, l) => sum + l.h + lineSpacing, 0) - lineSpacing;
-           } else {
-               item.hTotal = 0;
-           }
-           if (item.isGap) {
-               item.hTotal = 150 * scale; // 간주 딜레이를 위한 강제 공백 높이 추가
-           }
-        }
-      });
-      
-      const getCenterY = (idx) => {
-        let y = 0;
-        for (let i = 0; i < idx; i++) y += lyricsData[i].hTotal + blockSpacing;
-        return y + lyricsData[idx].hTotal / 2;
-      };
-
-      let currentY = 0;
-      let targetCenterY = 0;
-      let activeIdx = -1;
-      
-      if (isSynced) {
-        // 싱크 모드
-        for (let i = 0; i < lyricsData.length; i++) {
-          if (time >= lyricsData[i].start) activeIdx = i;
-          else break;
-        }
-        activeIdx = Math.max(0, activeIdx);
-        targetCenterY = getCenterY(activeIdx);
-        
-        // 스무스 트랜지션
-        if (activeIdx + 1 < lyricsData.length) {
-          const nextItem = lyricsData[activeIdx + 1];
-          const transDur = 0.5;
-          const timeToNext = nextItem.start - time;
-          if (timeToNext >= 0 && timeToNext < transDur) {
-             let p = 1.0 - (timeToNext / transDur);
-             p = p * p * (3 - 2 * p);
-             const nextY = getCenterY(activeIdx + 1);
-             targetCenterY += (nextY - targetCenterY) * p;
-          }
-        }
-        
-        const scrollOffset = (lyricsH / 2) - targetCenterY;
-        currentY = lyricsYStart + scrollOffset;
-        
       } else {
-        // 비동기 스크롤 모드 (정밀 싱크 계산)
-        const totalH = lyricsData.reduce((sum, item) => sum + item.hTotal + blockSpacing, 0);
-        const lastItemH = lyricsData.length > 0 ? lyricsData[lyricsData.length - 1].hTotal : 0;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 2 * scale;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(coverX, coverY, coverSize, coverSize, 20 * scale);
+        else ctx.rect(coverX, coverY, coverSize, coverSize);
+        ctx.fill();
+        ctx.stroke();
         
-        // 1. 시작 위치: 화면 하단에서 220px 위 (첫 가사 3줄만 살짝 노출)
-        const startY = lyricsYStart + lyricsH - (220 * scale);
-        
-        // 2. 종료 위치: 노래 끝날 때 마지막 가사가 화면 중앙보다 약 2줄 더 올라간 위치에 오도록 수정
-        const totalScrollDist = totalH - lastItemH;
-        const endY = (lyricsYStart + lyricsH / 2) - totalScrollDist - (150 * scale);
-        
-        // 3. 타이틀 오프닝(첫 4초) 대기 로직 적용 -> 전주 동안 가사 움직임을 대기시켜 싱크 이탈 방지
-        const introDelay = 4.0;
-        let p = 0;
-        if (time >= introDelay && duration > introDelay) {
-            p = (time - introDelay) / (duration - introDelay);
-        }
-        if (p > 1) p = 1;
-        currentY = startY + (endY - startY) * p;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.font = `${22 * scale}px ${fontFamily}, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('📷 앨범 커버 이미지 미리보기 영역', coverX + coverSize / 2, coverY + coverSize / 2 + (60 * scale));
+        ctx.restore();
       }
       
-      // 텍스트 드로잉 및 클리핑 영역 설정 (위아래 2줄 가림 효과)
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(lyricsX, lyricsYStart, lyricsW, lyricsH);
-      ctx.clip();
+      drawSceneOverlay(ctx, w, h, scale);
 
-      lyricsData.forEach((item, i) => {
-        const isActive = (i === activeIdx);
-        const blockH = item.hTotal;
+      if (lyricsData && lyricsData.length > 0) {
+        const lyricsScale = transformState.lyrics.scale;
+        const fontSize = (isVertical ? 40 : 45) * scale * lyricsScale;
+        ctx.font = `bold ${fontSize}px ${fontFamily}, sans-serif`;
+        ctx.textBaseline = 'top';
+        const lineSpacing = 35 * scale * lyricsScale;
+        const blockSpacing = 60 * scale * lyricsScale;
         
-        // 화면 밖 클리핑
-        if (currentY + blockH < lyricsYStart || currentY > lyricsYStart + lyricsH) {
-          currentY += blockH + blockSpacing;
-          return;
-        }
-        
-        if (isActive && isSynced) {
-          // 하이라이트 박스
-          ctx.fillStyle = 'rgba(60, 60, 60, 0.8)';
-          const padX = 40 * scale, padY = 20 * scale;
-          const radius = 20 * scale;
-          ctx.beginPath();
-          ctx.roundRect(lyricsX + padX, currentY - padY, lyricsW - padX*2, blockH + padY*2, radius);
-          ctx.fill();
-        }
-        
-        let itemY = currentY;
-        item.parsedLines.forEach(line => {
-           ctx.fillStyle = (isActive || !isSynced) ? '#ffffff' : 'rgba(130, 130, 130, 1)';
-           // 캔버스 자체 중앙 정렬 기능 사용 (수동 X좌표 계산 오류 원천 차단)
-           ctx.textAlign = 'center';
-           const lineX = lyricsX + lyricsW / 2;
-           
-           if (line.compress) {
-               // 2안: 가로폭 압축 렌더링
-               ctx.fillText(line.text, lineX, itemY, maxW);
-           } else {
-               ctx.fillText(line.text, lineX, itemY);
-           }
-           
-           itemY += line.h + lineSpacing;
+        lyricsData.forEach(item => {
+          if (!item.parsedLines) {
+             item.parsedLines = [];
+             const paragraphs = item.text.split('\n');
+             paragraphs.forEach(pText => {
+                 const lines = smartBalanceWrap(pText, ctx, maxW, scale);
+                 item.parsedLines.push(...lines);
+             });
+             
+             if (item.parsedLines.length > 0) {
+                 item.hTotal = item.parsedLines.reduce((sum, l) => sum + l.h + lineSpacing, 0) - lineSpacing;
+             } else {
+                 item.hTotal = 0;
+             }
+             if (item.isGap) {
+                 item.hTotal = 150 * scale * lyricsScale;
+             }
+          }
         });
         
-        currentY += blockH + blockSpacing;
-      });
+        const getCenterY = (idx) => {
+          let y = 0;
+          for (let i = 0; i < idx; i++) y += lyricsData[i].hTotal + blockSpacing;
+          return y + lyricsData[idx].hTotal / 2;
+        };
 
-      // 상/하단 스무스 페이드 아웃 (블랙 그라데이션) - 약 2.5줄 높이
-      const fadeH = 150 * scale;
-      
-      const topGrad = ctx.createLinearGradient(0, lyricsYStart, 0, lyricsYStart + fadeH);
-      topGrad.addColorStop(0, 'rgba(0,0,0,1)');
-      topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = topGrad;
-      ctx.fillRect(lyricsX, lyricsYStart, lyricsW, fadeH);
-
-      const bottomGrad = ctx.createLinearGradient(0, lyricsYStart + lyricsH, 0, lyricsYStart + lyricsH - fadeH);
-      bottomGrad.addColorStop(0, 'rgba(0,0,0,1)');
-      bottomGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = bottomGrad;
-      ctx.fillRect(lyricsX, lyricsYStart + lyricsH - fadeH, lyricsW, fadeH);
-      
-      ctx.restore(); // 클리핑 해제
-      
-      // 타이틀 오프닝 효과 (첫 5초)
-      if (songTitleStr && time < 5) {
+        let currentY = 0;
+        let targetCenterY = 0;
+        let activeIdx = -1;
+        
+        if (isSynced) {
+          for (let i = 0; i < lyricsData.length; i++) {
+            if (time >= lyricsData[i].start) activeIdx = i;
+            else break;
+          }
+          activeIdx = Math.max(0, activeIdx);
+          targetCenterY = getCenterY(activeIdx);
+          
+          if (activeIdx + 1 < lyricsData.length) {
+            const nextItem = lyricsData[activeIdx + 1];
+            const transDur = 0.5;
+            const timeToNext = nextItem.start - time;
+            if (timeToNext >= 0 && timeToNext < transDur) {
+               let p = 1.0 - (timeToNext / transDur);
+               p = p * p * (3 - 2 * p);
+               const nextY = getCenterY(activeIdx + 1);
+               targetCenterY += (nextY - targetCenterY) * p;
+            }
+          }
+          
+          const scrollOffset = (lyricsH / 2) - targetCenterY;
+          currentY = lyricsYStart + scrollOffset;
+          
+        } else {
+          const totalH = lyricsData.reduce((sum, item) => sum + item.hTotal + blockSpacing, 0);
+          const lastItemH = lyricsData.length > 0 ? lyricsData[lyricsData.length - 1].hTotal : 0;
+          
+          const startY = lyricsYStart + lyricsH - (220 * scale);
+          const totalScrollDist = totalH - lastItemH;
+          const endY = (lyricsYStart + lyricsH / 2) - totalScrollDist - (150 * scale);
+          
+          const introDelay = 4.0;
+          let p = 0;
+          if (time >= introDelay && duration > introDelay) {
+              p = (time - introDelay) / (duration - introDelay);
+          }
+          if (p > 1) p = 1;
+          currentY = startY + (endY - startY) * p;
+        }
+        
         ctx.save();
-        let alpha = 1.0;
-        if (time < 1) alpha = time;
-        else if (time > 4) alpha = 1.0 - (time - 4);
+        ctx.beginPath();
+        ctx.rect(lyricsX, lyricsYStart, lyricsW, lyricsH);
+        ctx.clip();
+
+        lyricsData.forEach((item, i) => {
+          const isActive = (i === activeIdx);
+          const blockH = item.hTotal;
+          
+          if (currentY + blockH < lyricsYStart || currentY > lyricsYStart + lyricsH) {
+            currentY += blockH + blockSpacing;
+            return;
+          }
+          
+          if (isActive && isSynced) {
+            ctx.fillStyle = 'rgba(60, 60, 60, 0.8)';
+            const padX = 40 * scale, padY = 20 * scale;
+            const radius = 20 * scale;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(lyricsX + padX, currentY - padY, lyricsW - padX*2, blockH + padY*2, radius);
+            else ctx.rect(lyricsX + padX, currentY - padY, lyricsW - padX*2, blockH + padY*2);
+            ctx.fill();
+          }
+          
+          let itemY = currentY;
+          item.parsedLines.forEach(line => {
+             ctx.fillStyle = (isActive || !isSynced) ? '#ffffff' : 'rgba(130, 130, 130, 1)';
+             ctx.textAlign = 'center';
+             const lineX = lyricsX + lyricsW / 2;
+             
+             if (line.compress) {
+                 ctx.fillText(line.text, lineX, itemY, maxW);
+             } else {
+                 ctx.fillText(line.text, lineX, itemY);
+             }
+             
+             itemY += line.h + lineSpacing;
+          });
+          
+          currentY += blockH + blockSpacing;
+        });
+
+        // 상단 3줄 & 하단 3줄 영역 서서히 어둡게 처리 (중앙 2~3줄 시선 집중 스포트라이트 효과)
+        const fadeH = 300 * scale;
         
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = '#f5c45e';
-        const titleFont = (isVertical ? 50 : 60) * scale;
-        ctx.font = `900 ${titleFont}px ${fontFamily}, sans-serif`;
-        ctx.textBaseline = 'middle';
+        const topGrad = ctx.createLinearGradient(0, lyricsYStart, 0, lyricsYStart + fadeH);
+        topGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        topGrad.addColorStop(0.35, 'rgba(0, 0, 0, 0.88)');
+        topGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.45)');
+        topGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = topGrad;
+        ctx.fillRect(lyricsX, lyricsYStart, lyricsW, fadeH);
+
+        const bottomGrad = ctx.createLinearGradient(0, lyricsYStart + lyricsH, 0, lyricsYStart + lyricsH - fadeH);
+        bottomGrad.addColorStop(0, 'rgba(0, 0, 0, 1)');
+        bottomGrad.addColorStop(0.35, 'rgba(0, 0, 0, 0.88)');
+        bottomGrad.addColorStop(0.7, 'rgba(0, 0, 0, 0.45)');
+        bottomGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = bottomGrad;
+        ctx.fillRect(lyricsX, lyricsYStart + lyricsH - fadeH, lyricsW, fadeH);
+        
+        ctx.restore();
+      } else {
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.font = `${20 * scale}px ${fontFamily}, sans-serif`;
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('📝 가사(SRT / 텍스트)를 입력하시면 여기에 자막이 흐릅니다.', lyricsX + lyricsW / 2, lyricsYStart + lyricsH / 2);
+        ctx.restore();
+      }
+      
+      if (songTitleStr) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         
-        const titleX = lyricsX + lyricsW / 2;
-        let titleY = lyricsYStart + lyricsH / 3;
+        const titleFont = (isVertical ? 56 : 64) * scale;
+        ctx.font = `bold ${titleFont}px ${fontFamily}, sans-serif`;
         
-        // 그림자 효과로 가독성 향상
-        ctx.shadowColor = 'rgba(0,0,0,0.9)';
-        ctx.shadowBlur = 15 * scale;
-        ctx.shadowOffsetX = 2 * scale;
-        ctx.shadowOffsetY = 2 * scale;
+        const coverCenterX = leftW / 2;
+        const coverCenterY = topH / 2;
         
-        // 제목에도 1안/2안(스마트 줄바꿈) 적용
-        const maxTitleW = lyricsW * 0.85;
+        const maxTitleW = (isVertical ? leftW * 0.82 : leftW * 0.78);
         const titleLines = smartBalanceWrap(songTitleStr, ctx, maxTitleW, scale);
-        
         const titleLineSpacing = 20 * scale;
         const totalTitleH = titleLines.length * titleFont + Math.max(0, titleLines.length - 1) * titleLineSpacing;
-        titleY -= totalTitleH / 4; // 다중 줄일 때 중앙 보정
+        
+        let maxLineWidth = 0;
+        titleLines.forEach(l => {
+          const mWidth = ctx.measureText(l.text).width;
+          if (mWidth > maxLineWidth) maxLineWidth = mWidth;
+        });
+        if (maxLineWidth > maxTitleW) maxLineWidth = maxTitleW;
+        
+        const badgePaddingX = 36 * scale;
+        const badgePaddingY = 20 * scale;
+        const badgeW = maxLineWidth + (badgePaddingX * 2);
+        const badgeH = totalTitleH + (badgePaddingY * 2);
+        const badgeX = coverCenterX - badgeW / 2;
+        const badgeY = coverCenterY - badgeH / 2;
+        const badgeRadius = 18 * scale;
+        
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+        ctx.shadowBlur = 22 * scale;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 6 * scale;
+
+        ctx.fillStyle = 'rgba(10, 12, 16, 0.58)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+        ctx.lineWidth = 1.5 * scale;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(badgeX, badgeY, badgeW, badgeH, badgeRadius);
+        } else {
+          ctx.rect(badgeX, badgeY, badgeW, badgeH);
+        }
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        
+        let curTitleY = coverCenterY - (totalTitleH / 2) + (titleFont / 2);
+        
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+        ctx.shadowBlur = 14 * scale;
+        ctx.shadowOffsetX = 2 * scale;
+        ctx.shadowOffsetY = 3 * scale;
+        ctx.fillStyle = '#ffffff';
         
         titleLines.forEach(tLine => {
-            if (tLine.compress) {
-                ctx.fillText(tLine.text, titleX, titleY, maxTitleW);
-            } else {
-                ctx.fillText(tLine.text, titleX, titleY);
-            }
-            titleY += titleFont + titleLineSpacing;
+          if (tLine.compress) {
+            ctx.fillText(tLine.text, coverCenterX, curTitleY, maxTitleW);
+          } else {
+            ctx.fillText(tLine.text, coverCenterX, curTitleY);
+          }
+          curTitleY += titleFont + titleLineSpacing;
         });
         
         ctx.restore();
+      }
+
+      drawWaveform(ctx, w, h, scale);
+      drawEffectOverlay(ctx, w, h, scale);
+
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        drawSelectionHighlight(ctx, w, h, scale);
       }
     }
 
@@ -556,21 +1496,19 @@
       statusPanel.innerText = '재료 준비 중...';
       
       try {
-        // 1. 이미지 로드
         coverImageObj = await loadImage(URL.createObjectURL(coverFile));
         
-        // 2. 가사 준비
-        const mode = document.getElementById('subtitleMode').value;
+        const srtInputEl = document.getElementById('srtInput');
+        const rawLyricsEl = document.getElementById('rawLyrics');
+        const srtFile = (srtInputEl && srtInputEl.files.length > 0) ? srtInputEl.files[0] : null;
+        const rawText = rawLyricsEl ? rawLyricsEl.value.trim() : '';
         lyricsData = [];
-        if (mode === 'srt') {
-          const srtFile = document.getElementById('srtInput').files[0];
-          if (srtFile) {
-            const srtText = await readFileAsText(srtFile);
-            lyricsData = parseSRT(srtText);
-            isSynced = true;
-          }
-        } else {
-          const rawText = document.getElementById('rawLyrics').value;
+        
+        if (srtFile) {
+          const srtText = await readFileAsText(srtFile);
+          lyricsData = parseSRT(srtText);
+          isSynced = true;
+        } else if (rawText) {
           const paragraphs = rawText.split('\n\n').filter(p => p.trim());
           lyricsData = paragraphs.map(p => {
              const cleanText = p.replace(/\[.*?\]/g, '').replace(/^\s*[\r\n]/gm, '').trim();
@@ -583,7 +1521,6 @@
           isSynced = false;
         }
         
-        // 3. 오디오 셋업
         if (audioElement) {
           audioElement.pause();
           audioElement.src = '';
@@ -592,7 +1529,6 @@
         
         await new Promise(r => {
           audioElement.onloadedmetadata = r;
-          // 모바일 대응 등 버퍼링을 위해 약간 대기
         });
         
         const duration = audioElement.duration;
@@ -605,43 +1541,45 @@
         const songTitleStr = songTitleInput ? songTitleInput.value.trim() : '';
         const fontFamily = document.getElementById('fontFamily') ? document.getElementById('fontFamily').value : "'Malgun Gothic'";
         
-        // 폰트 로딩 완전 대기 (웹 폰트 적용 시 캔버스 공백 방지)
         if (document.fonts && document.fonts.ready) {
             await document.fonts.ready;
         }
         
-        // 4. MediaRecorder 셋업 (고품질 녹화)
-        // 화면 스트림 30fps
         const canvasStream = cvs.captureStream(30);
         
-        // 오디오 스트림 추출 (Web Audio API)
-        const audioCtx = new AudioContext();
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const dest = audioCtx.createMediaStreamDestination();
         const source = audioCtx.createMediaElementSource(audioElement);
-        source.connect(dest);
-        source.connect(audioCtx.destination); // 스피커로도 출력
         
-        // 두 스트림 병합
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 256;
+        analyserNode.smoothingTimeConstant = 0.8;
+        source.connect(analyserNode);
+
+        freqDataArray = new Uint8Array(analyserNode.frequencyBinCount);
+        timeDataArray = new Uint8Array(analyserNode.frequencyBinCount);
+
+        source.connect(dest);
+        source.connect(audioCtx.destination);
+        
         const combinedStream = new MediaStream([
           ...canvasStream.getVideoTracks(),
           ...dest.stream.getAudioTracks()
         ]);
         
-        // 비트레이트 설정 (고화질, 고음질 보장)
-        let videoBitrate = 8000000; // 8Mbps (1k)
-        if (val.includes('2k')) videoBitrate = 16000000; // 16Mbps
-        if (val.includes('4k')) videoBitrate = 35000000; // 35Mbps
+        let videoBitrate = 8000000;
+        if (val.includes('2k')) videoBitrate = 16000000;
+        if (val.includes('4k')) videoBitrate = 35000000;
         
         const options = { 
           mimeType: 'video/webm;codecs=vp9,opus',
           videoBitsPerSecond: videoBitrate,
-          audioBitsPerSecond: 320000   // 320kbps
+          audioBitsPerSecond: 320000
         };
         
         try {
           mediaRecorder = new MediaRecorder(combinedStream, options);
         } catch (e) {
-          // vp9 지원 안하는 브라우저 롤백
           mediaRecorder = new MediaRecorder(combinedStream); 
         }
         
@@ -655,13 +1593,12 @@
           const blob = new Blob(recordedChunks, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
           
-          // 다운로드 트리거 (노래 제목으로 파일명 지정)
           const a = document.createElement('a');
           a.href = url;
           let filename = 'lyric_video_result.webm';
           if (songTitleStr) {
               const cleanTitle = songTitleStr.replace(/[/\\:*?"<>|]/g, '_').trim();
-              if (cleanTitle) filename = ${cleanTitle}.webm;
+              if (cleanTitle) filename = cleanTitle + '.webm';
           }
           a.download = filename;
           a.click();
@@ -670,10 +1607,12 @@
           renderBtn.disabled = false;
         };
         
-        // 5. 렌더링 시작
         statusPanel.innerText = `녹화 진행 중... 음악이 끝날 때까지 기다려주세요.`;
         
-        // 애니메이션 루프 (강력한 예외 처리 적용)
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
         function loop() {
            try {
              const time = audioElement.currentTime;
@@ -694,7 +1633,7 @@
         }
         
         mediaRecorder.start();
-        audioElement.play();
+        await audioElement.play();
         loop();
 
       } catch (err) {
